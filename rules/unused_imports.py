@@ -25,7 +25,10 @@ def find_unused_imports(filepath: str) -> list[Finding]:
                 # check if .name or .asname (import os || import os as opersys)
                 if name.asname is not None and name.asname == name.name:
                     continue # skip for deliberate pattern "import X as "
-                imported[name.asname or name.name] = node.lineno
+                # Plain dotted imports bind the top-level package; aliases and
+                # from-imports bind the explicitly imported name.
+                bound_name = name.asname or (name.name.split('.')[0] if isinstance(node, ast.Import) else name.name)
+                imported[name.asname or name.name] = (node.lineno, bound_name)
     
     # every time code references a name: os.path.join(), path.exists(),... parser creates ast.Name with .id attribute
     used_names = set()
@@ -47,8 +50,8 @@ def find_unused_imports(filepath: str) -> list[Finding]:
     
     # compare
     result = []
-    for name,lineno in imported.items():
-        if name not in used_names:
+    for name, (lineno, bound_name) in imported.items():
+        if bound_name not in used_names:
             # unused import: create a Finding
             result.append(Finding(
                 rule_id="unused-import",

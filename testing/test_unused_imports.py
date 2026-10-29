@@ -99,3 +99,36 @@ __all__ = ["array", "ndarray"]
     result = find_unused_imports(str(file))
 
     assert result == [Finding(rule_id="unused-import", message="Unused import from 'sys'", line=4)]
+
+def test_dotted_import_binds_top_level_package(tmp_path):
+    file = create_test_file(tmp_path, 'import os.path\nprint(os.path.join("a", "b"))\n')
+
+    assert find_unused_imports(str(file)) == []
+
+
+def test_deeply_dotted_import_binds_top_level_package(tmp_path):
+    file = create_test_file(tmp_path, 'import xml.etree.ElementTree\nprint(xml.etree.ElementTree)\n')
+
+    assert find_unused_imports(str(file)) == []
+
+
+def test_dotted_import_alias_is_respected(tmp_path):
+    file = create_test_file(tmp_path, 'import os.path as path\nprint(path.join("a", "b"))\n')
+
+    assert find_unused_imports(str(file)) == []
+
+
+def test_unused_dotted_import_keeps_full_name_in_message(tmp_path):
+    file = create_test_file(tmp_path, 'import os.path\n')
+
+    assert find_unused_imports(str(file)) == [
+        Finding('unused-import', "Unused import from 'os.path'", 1)
+    ]
+
+
+def test_dotted_from_import_still_requires_imported_name(tmp_path):
+    file = create_test_file(tmp_path, 'from xml.etree import ElementTree\nprint(xml)\n')
+
+    assert find_unused_imports(str(file)) == [
+        Finding('unused-import', "Unused import from 'ElementTree'", 1)
+    ]
