@@ -15,10 +15,11 @@ Built in collaboration with [Soham200613](https://github.com/Soham200613) and [G
 - **Comparing with `==` instead of `is` for `None`/`True`/`False`** — non-idiomatic and can misbehave with custom `__eq__`. Check `ast.Compare` nodes where one side is an `ast.Constant` with value `None`/`True`/`False` and the operator is `Eq`/`NotEq`.
 - **Shadowed funcions/methods/class definitions**: functions later shadowed without an @overload stub and other exceptions are silently shadowed by python
 
+- **Shadowed builtins**: parameters and variable bindings named `list`, `dict`, `id`, `type`, etc. hide Python's builtins. Attribute names and ordinary builtin references are not flagged.
+
 ## Rules yet to be implemented
 
 - **Excessive function arguments**: functions with too many parameters are hard to maintain and often signal the function is doing too much.
-- **Shadowed builtins**: variables or parameters named `list`, `dict`, `id`, `type`, etc. silently shadow Python's builtins. Check `ast.arg` names and assignment targets against a known set of builtin names.
 - **Unused function arguments**: parameters never referenced in the function body, often signaling incomplete refactoring. Same "walk and collect `ast.Name` usages" pattern as unused imports, applied per-function.
 - **Global variable mutation inside functions**: using `global` to mutate outer-scope state is a common source of hard-to-trace bugs. Check for `ast.Global` nodes within functions.
 - **Deeply nested code (high cyclomatic complexity)**: functions with many nested `if`/`for`/`while`/`try` blocks are hard to read and test. Requires tracking nesting depth/branch count while walking, rather than matching a single node type.
