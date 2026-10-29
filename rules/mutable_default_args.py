@@ -16,10 +16,10 @@ def find_mutable_defaults(filepath: str) -> list[Finding]:
     
     result = []
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            for default in node.args.defaults:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for default in node.args.defaults + node.args.kw_defaults:
                 # args is an argument node
-                # args.defaults is a list of default values passed positionally
+                # defaults and kw_defaults cover positional and keyword-only values
                 # check if default is a mutable literal  
                 if is_mutable(default):
                     result.append(Finding(
